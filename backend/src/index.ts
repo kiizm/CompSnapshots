@@ -166,4 +166,77 @@ app.post("/scrape-competitor/:id", async (req, res) => {
       res.status(500).json({ error: "Failed to scrape competitor" });
     }
   });
+
+/**
+ * Get reviews for a competitor
+ */
+app.get("/competitor/:id/reviews", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+        id,
+        competitor_id,
+        rating,
+        review_text,
+        review_date,
+        reviewer_name,
+        source,
+        created_at
+      FROM public.reviews
+      WHERE competitor_id = $1
+      ORDER BY created_at DESC
+      LIMIT 100
+      `,
+      [id]
+    );
+
+    res.json({
+      status: "ok",
+      competitor_id: id,
+      reviews: result.rows,
+      count: result.rows.length,
+    });
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ error: "Failed to fetch reviews" });
+  }
+});
+
+/**
+ * Get all reviews (for testing/debugging)
+ */
+app.get("/reviews", async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+        r.id,
+        r.competitor_id,
+        c.name as competitor_name,
+        r.rating,
+        r.review_text,
+        r.review_date,
+        r.reviewer_name,
+        r.source,
+        r.created_at
+      FROM public.reviews r
+      LEFT JOIN public.competitors c ON r.competitor_id = c.id
+      ORDER BY r.created_at DESC
+      LIMIT 100
+      `
+    );
+
+    res.json({
+      status: "ok",
+      reviews: result.rows,
+      count: result.rows.length,
+    });
+  } catch (error) {
+    console.error("Error fetching all reviews:", error);
+    res.status(500).json({ error: "Failed to fetch reviews" });
+  }
+});
   
