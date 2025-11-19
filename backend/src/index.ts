@@ -2,6 +2,10 @@ import express from "express";
 import cors from "cors";
 import { pool } from "./db";
 import { scrapeGoogleMapsReviews } from "./scrapers/googleMaps";
+import { analyzeCompetitor } from "./analysis";
+import path from "path";
+import { generateCompetitorReport } from "./reports";
+
 
 
 
@@ -11,6 +15,10 @@ const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
+
+const reportsDir = path.join(__dirname, "..", "reports");
+app.use("/reports", express.static(reportsDir));
+
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
@@ -239,4 +247,64 @@ app.get("/reviews", async (_req, res) => {
     res.status(500).json({ error: "Failed to fetch reviews" });
   }
 });
+
+/**
+ * Get analysis for a competitor
+ */
+app.get("/competitors/:id/analysis", async (req, res) => {
+    const { id } = req.params;
   
+    try {
+      // Optionally verify the competitor exists
+      const existing = await pool.query(
+        `SELECT id FROM public.competitors WHERE id = $1`,
+        [id]
+      );
+  
+      if (existing.rowCount === 0) {
+        return res.status(404).json({ error: "Competitor not found" });
+      }
+  
+      const analysis = await analyzeCompetitor(id);
+  
+      res.json({
+        status: "ok",
+        analysis,
+      });
+    } catch (error) {
+      console.error("Error in /competitors/:id/analysis:", error);
+      res
+        .status(500)
+        .json({ status: "error", error: "Failed to analyze competitor" });
+    }
+  });
+  
+  /**
+ * Generate a report for a business + competitor
+ * For now, no auth; later we will check user ownership.
+ */
+app.post(
+  "/businesses/:businessId/competitors/:competitorId/report",
+  async (req, res) => {
+    const { businessId, competitorId } = req.params;
+
+    try {
+      const { reportId, pdfUrl } = await generateCompetitorReport(
+        businessId,
+        competitorId
+      );
+
+      res.status(201).json({
+        status: "ok",
+        report_id: reportId,
+        pdf_url: pdfUrl,
+      });
+    } catch (error: any) {
+      console.error("Error generating report:", error);
+      res.status(500).json({
+        status: "error",
+        error: error?.message || "Failed to generate report",
+      });
+    }
+  }
+);

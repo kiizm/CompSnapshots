@@ -17,7 +17,9 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "pg": "^8.16.3",
-    "playwright": "^1.56.1"
+    "playwright": "^1.56.1",
+    "puppeteer": "^24.30.0",
+    "sentiment": "^5.0.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
