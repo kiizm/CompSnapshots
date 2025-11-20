@@ -303,84 +303,85 @@ function App() {
   }
 
   // ===== AUTH VIEW =====
-  if (!session) {
-    return (
-      <div className="auth-shell">
-        <div className="auth-card">
-          <div className="app-logo" style={{ marginBottom: 12 }}>
-            <div className="app-logo-badge">CI</div>
-            <div className="app-logo-text">
-              <div className="app-logo-title">Local Intel</div>
-              <div className="app-logo-subtitle">
-                Competitive insights for local businesses
-              </div>
+if (!session) {
+  return (
+    <div className="auth-shell">
+      <div className="auth-card">
+        <div className="app-logo" style={{ marginBottom: 12 }}>
+          <div className="app-logo-badge">CS</div>
+          <div className="app-logo-text">
+            <div className="app-logo-title">CompSnapshots</div>
+            <div className="app-logo-subtitle">
+              Competitive Insights for Local Businesses
             </div>
           </div>
-
-          <div className="auth-toggle">
-            <div>
-              <div className="auth-title">
-                {authView === "sign-in" ? "Welcome back" : "Create an account"}
-              </div>
-              <div className="auth-subtitle">
-                {authView === "sign-in"
-                  ? "Sign in to manage businesses and reports."
-                  : "Start tracking your competitors in minutes."}
-              </div>
-            </div>
-            <button
-              className="btn btn-ghost"
-              onClick={() =>
-                setAuthView(authView === "sign-in" ? "sign-up" : "sign-in")
-              }
-            >
-              {authView === "sign-in" ? "Need an account?" : "Have an account?"}
-            </button>
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (authView === "sign-in") {
-                handleSignIn();
-              } else {
-                handleSignUp();
-              }
-            }}
-            className="auth-form"
-          >
-            <input
-              type="email"
-              className="input"
-              placeholder="Work email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              className="input"
-              placeholder="Password (min 6 characters)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              <span className="btn-icon">⚡</span>
-              {loading
-                ? "Please wait..."
-                : authView === "sign-in"
-                ? "Sign in"
-                : "Sign up"}
-            </button>
-          </form>
-
-          {authError && <p className="auth-error">Error: {authError}</p>}
         </div>
+
+        <div className="auth-toggle">
+          <div>
+            <div className="auth-title">
+              {authView === "sign-in" ? "Welcome back" : "Create an account"}
+            </div>
+            <div className="auth-subtitle">
+              {authView === "sign-in"
+                ? "Sign in to manage businesses and reports."
+                : "Start tracking your competitors in minutes."}
+            </div>
+          </div>
+          <button
+            className="btn btn-ghost"
+            onClick={() =>
+              setAuthView(authView === "sign-in" ? "sign-up" : "sign-in")
+            }
+          >
+            {authView === "sign-in" ? "Need an account?" : "Have an account?"}
+          </button>
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (authView === "sign-in") {
+              handleSignIn();
+            } else {
+              handleSignUp();
+            }
+          }}
+          className="auth-form"
+        >
+          <input
+            type="email"
+            className="input"
+            placeholder="Work email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            className="input"
+            placeholder="Password (min 6 characters)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            <span className="btn-icon">⚡</span>
+            {loading
+              ? "Please wait..."
+              : authView === "sign-in"
+              ? "Sign in"
+              : "Sign up"}
+          </button>
+        </form>
+
+        {authError && <p className="auth-error">Error: {authError}</p>}
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   // ===== LOGGED-IN DASHBOARD =====
   return (
@@ -388,11 +389,12 @@ function App() {
       {/* Sidebar */}
       <aside className="app-sidebar">
         <div className="app-logo">
-          <div className="app-logo-badge">CI</div>
-          <div className="app-logo-text">
-            <div className="app-logo-title">Local Intel</div>
-            <div className="app-logo-subtitle">AI competitive insights</div>
-          </div>
+        <div className="app-logo-badge">CS</div>
+<div className="app-logo-text">
+  <div className="app-logo-title">CompSnapshots</div>
+  <div className="app-logo-subtitle">AI Competitive Intelligence</div>
+</div>
+
         </div>
 
         <div>
@@ -424,10 +426,10 @@ function App() {
       <main className="app-main">
         <header className="top-bar">
           <div className="top-bar-left">
-            <div className="top-bar-title">Competitive Intelligence</div>
-            <div className="top-bar-subtitle">
-              Add your business, link competitors, and generate AI-ready reports.
-            </div>
+          <div className="top-bar-title">CompSnapshots Dashboard</div>
+          <div className="top-bar-subtitle">
+          Track competitors, insights, and generate AI reports.
+          </div>
           </div>
           <div className="top-bar-actions">
             {globalMessage && (
