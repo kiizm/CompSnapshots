@@ -1,7 +1,4 @@
 import { Pool } from "pg";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -11,8 +8,7 @@ if (!connectionString) {
 
 export const pool = new Pool({
   connectionString,
-  // Optional: Supabase requires SSL in many setups
   ssl: {
-    rejectUnauthorized: false,
+    rejectUnauthorized: false, // required for Supabase on Render/hosted envs
   },
 });
