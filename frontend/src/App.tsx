@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 import { postJson } from "./lib/api";
+import "./App.css";
 
 type Business = {
   id: string;
@@ -301,381 +302,409 @@ function App() {
     setReports(data || []);
   }
 
-  // ===== RENDER: LOGGED-OUT VIEW =====
+  // ===== AUTH VIEW =====
   if (!session) {
     return (
-      <div style={{ maxWidth: 400, margin: "40px auto", fontFamily: "sans-serif" }}>
-        <h1>Competitive Intelligence MVP</h1>
-        <p>{authView === "sign-in" ? "Sign in" : "Sign up"} to continue.</p>
+      <div className="auth-shell">
+        <div className="auth-card">
+          <div className="app-logo" style={{ marginBottom: 12 }}>
+            <div className="app-logo-badge">CI</div>
+            <div className="app-logo-text">
+              <div className="app-logo-title">Local Intel</div>
+              <div className="app-logo-subtitle">
+                Competitive insights for local businesses
+              </div>
+            </div>
+          </div>
 
-        <button
-          onClick={() =>
-            setAuthView(authView === "sign-in" ? "sign-up" : "sign-in")
-          }
-        >
-          Switch to {authView === "sign-in" ? "Sign Up" : "Sign In"}
-        </button>
+          <div className="auth-toggle">
+            <div>
+              <div className="auth-title">
+                {authView === "sign-in" ? "Welcome back" : "Create an account"}
+              </div>
+              <div className="auth-subtitle">
+                {authView === "sign-in"
+                  ? "Sign in to manage businesses and reports."
+                  : "Start tracking your competitors in minutes."}
+              </div>
+            </div>
+            <button
+              className="btn btn-ghost"
+              onClick={() =>
+                setAuthView(authView === "sign-in" ? "sign-up" : "sign-in")
+              }
+            >
+              {authView === "sign-in" ? "Need an account?" : "Have an account?"}
+            </button>
+          </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (authView === "sign-in") {
-              handleSignIn();
-            } else {
-              handleSignUp();
-            }
-          }}
-          style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}
-        >
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password (min 6 chars)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (authView === "sign-in") {
+                handleSignIn();
+              } else {
+                handleSignUp();
+              }
+            }}
+            className="auth-form"
+          >
+            <input
+              type="email"
+              className="input"
+              placeholder="Work email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type="password"
+              className="input"
+              placeholder="Password (min 6 characters)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
-          <button type="submit" disabled={loading}>
-            {loading
-              ? "Please wait..."
-              : authView === "sign-in"
-              ? "Sign In"
-              : "Sign Up"}
-          </button>
-        </form>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              <span className="btn-icon">⚡</span>
+              {loading
+                ? "Please wait..."
+                : authView === "sign-in"
+                ? "Sign in"
+                : "Sign up"}
+            </button>
+          </form>
 
-        {authError && (
-          <p style={{ color: "red", marginTop: 8 }}>Error: {authError}</p>
-        )}
+          {authError && <p className="auth-error">Error: {authError}</p>}
+        </div>
       </div>
     );
   }
 
-  // ===== RENDER: LOGGED-IN VIEW =====
+  // ===== LOGGED-IN DASHBOARD =====
   return (
-    <div style={{ maxWidth: 900, margin: "24px auto", fontFamily: "sans-serif" }}>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 24,
-        }}
-      >
+    <div className="app-shell">
+      {/* Sidebar */}
+      <aside className="app-sidebar">
+        <div className="app-logo">
+          <div className="app-logo-badge">CI</div>
+          <div className="app-logo-text">
+            <div className="app-logo-title">Local Intel</div>
+            <div className="app-logo-subtitle">AI competitive insights</div>
+          </div>
+        </div>
+
         <div>
-          <h1>Dashboard</h1>
-          <p style={{ fontSize: 12 }}>Logged in as: {session.user.email}</p>
-        </div>
-        <button onClick={handleLogout}>Log out</button>
-      </header>
-
-      {globalMessage && (
-        <div
-          style={{
-            marginBottom: 16,
-            padding: 8,
-            backgroundColor: "#ecfdf5",
-            borderRadius: 6,
-            fontSize: 13,
-          }}
-        >
-          {globalMessage}
-        </div>
-      )}
-
-      {/* Businesses section */}
-      <section style={{ marginBottom: 24 }}>
-        <h2>Your Businesses</h2>
-
-        <form
-          onSubmit={handleAddBusiness}
-          style={{ display: "flex", gap: 8, marginTop: 8 }}
-        >
-          <input
-            type="text"
-            placeholder="Business name"
-            value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
-          />
-          <button type="submit">Add</button>
-        </form>
-
-        {businessError && (
-          <p style={{ color: "red", marginTop: 8 }}>Error: {businessError}</p>
-        )}
-
-        <div style={{ marginTop: 12 }}>
-          {businesses.length === 0 ? (
-            <p style={{ fontSize: 13 }}>No businesses yet. Add one above.</p>
-          ) : (
-            <div>
-              <label style={{ fontSize: 13 }}>Select business:</label>
-              <select
-                value={selectedBusinessId || ""}
-                onChange={(e) =>
-                  setSelectedBusinessId(e.target.value || null)
-                }
-                style={{ marginLeft: 8 }}
-              >
-                {businesses.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
+          <div className="sidebar-section-title">Account</div>
+          <div className="sidebar-user-card">
+            <div className="sidebar-user-email">{session.user.email}</div>
+            <div className="sidebar-user-meta">
+              Solo workspace · Early access
             </div>
-          )}
+          </div>
         </div>
-      </section>
 
-      {/* Competitors section */}
-      <section style={{ marginBottom: 24 }}>
-        <h2>Competitors for selected business</h2>
+        <div>
+          <div className="sidebar-section-title">Views</div>
+          <div className="sidebar-nav">
+            <div className="sidebar-pill sidebar-pill-active">
+              <span>📊 Dashboard</span>
+              <span className="sidebar-pill-badge">MVP</span>
+            </div>
+          </div>
+        </div>
 
-        {!selectedBusinessId ? (
-          <p style={{ fontSize: 13 }}>
-            Select or add a business to manage competitors.
-          </p>
-        ) : (
-          <>
-            <form
-              onSubmit={handleAddCompetitor}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 2fr 1fr auto",
-                gap: 8,
-                marginTop: 8,
-                alignItems: "center",
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Competitor name"
-                value={competitorName}
-                onChange={(e) => setCompetitorName(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Google Maps URL"
-                value={competitorUrl}
-                onChange={(e) => setCompetitorUrl(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Category (optional)"
-                value={competitorCategory}
-                onChange={(e) => setCompetitorCategory(e.target.value)}
-              />
-              <button type="submit">Add</button>
-            </form>
+        <div className="sidebar-footer">
+          <div>Tip: start with 1–3 key competitors per location.</div>
+        </div>
+      </aside>
 
-            {competitorError && (
-              <p style={{ color: "red", marginTop: 8 }}>{competitorError}</p>
+      {/* Main content */}
+      <main className="app-main">
+        <header className="top-bar">
+          <div className="top-bar-left">
+            <div className="top-bar-title">Competitive Intelligence</div>
+            <div className="top-bar-subtitle">
+              Add your business, link competitors, and generate AI-ready reports.
+            </div>
+          </div>
+          <div className="top-bar-actions">
+            {globalMessage && (
+              <div className="alert">
+                <span>✅</span>
+                <span>{globalMessage}</span>
+              </div>
             )}
+            <button className="btn btn-ghost" onClick={handleLogout}>
+              <span className="btn-icon">⏏</span>
+              Log out
+            </button>
+          </div>
+        </header>
 
-            <div style={{ marginTop: 12 }}>
-              {competitors.length === 0 ? (
-                <p style={{ fontSize: 13 }}>
-                  No competitors yet. Add one above.
+        {/* Row: Businesses + Competitors */}
+        <div className="section-row">
+          {/* Businesses */}
+          <section className="card">
+            <div className="card-header">
+              <div>
+                <div className="card-title">Your businesses</div>
+                <div className="card-subtitle">
+                  Add locations you want to monitor.
+                </div>
+              </div>
+            </div>
+            <div className="card-body">
+              <form
+                onSubmit={handleAddBusiness}
+                style={{ display: "flex", gap: 8, marginBottom: 10 }}
+              >
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="e.g. Frituur Centrale Lanaken"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                />
+                <button type="submit" className="btn btn-primary">
+                  <span className="btn-icon">＋</span>
+                  Add
+                </button>
+              </form>
+
+              {businessError && (
+                <p className="text-error">Error: {businessError}</p>
+              )}
+
+              {businesses.length === 0 ? (
+                <p className="text-muted">
+                  No businesses yet. Add your first one above.
                 </p>
               ) : (
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    fontSize: 13,
-                  }}
-                >
-                  <thead>
-                    <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          borderBottom: "1px solid #e5e7eb",
-                          padding: 6,
-                        }}
-                      >
-                        Name
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          borderBottom: "1px solid #e5e7eb",
-                          padding: 6,
-                        }}
-                      >
-                        Google Maps URL
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          borderBottom: "1px solid #e5e7eb",
-                          padding: 6,
-                        }}
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {competitors.map((c) => (
-                      <tr key={c.id}>
-                        <td
-                          style={{
-                            borderBottom: "1px solid #f3f4f6",
-                            padding: 6,
-                            verticalAlign: "top",
-                          }}
-                        >
-                          {c.name}
-                          {c.category && (
-                            <div style={{ fontSize: 11, color: "#6b7280" }}>
-                              {c.category}
-                            </div>
-                          )}
-                        </td>
-                        <td
-                          style={{
-                            borderBottom: "1px solid #f3f4f6",
-                            padding: 6,
-                            verticalAlign: "top",
-                            wordBreak: "break-all",
-                          }}
-                        >
-                          <a
-                            href={c.google_maps_url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Open in Maps
-                          </a>
-                        </td>
-                        <td
-                          style={{
-                            borderBottom: "1px solid #f3f4f6",
-                            padding: 6,
-                            verticalAlign: "top",
-                          }}
-                        >
-                          <button
-                            style={{ marginRight: 8, marginBottom: 4 }}
-                            disabled={loading}
-                            onClick={() => handleScrape(c.id)}
-                          >
-                            Scrape reviews
-                          </button>
-                          <button
-                            disabled={loading}
-                            onClick={() => handleGenerateReport(c.id)}
-                          >
-                            Generate report (PDF)
-                          </button>
-                        </td>
-                      </tr>
+                <div style={{ marginTop: 6 }}>
+                  <div className="text-muted" style={{ marginBottom: 4 }}>
+                    Active business
+                  </div>
+                  <select
+                    className="select"
+                    value={selectedBusinessId || ""}
+                    onChange={(e) =>
+                      setSelectedBusinessId(e.target.value || null)
+                    }
+                  >
+                    {businesses.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
                     ))}
-                  </tbody>
-                </table>
+                  </select>
+                </div>
               )}
             </div>
-          </>
-        )}
-      </section>
+          </section>
 
-      {/* Reports section */}
-      <section style={{ marginBottom: 24 }}>
-        <h2>Reports for selected business</h2>
+          {/* Competitors */}
+          <section className="card">
+            <div className="card-header">
+              <div>
+                <div className="card-title">Competitors</div>
+                <div className="card-subtitle">
+                  Link Google Maps profiles for competitors to track.
+                </div>
+              </div>
+            </div>
+            <div className="card-body">
+              {!selectedBusinessId ? (
+                <p className="text-muted">
+                  Select or add a business to start adding competitors.
+                </p>
+              ) : (
+                <>
+                  <form
+                    onSubmit={handleAddCompetitor}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 2fr 1fr auto",
+                      gap: 8,
+                      marginBottom: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Competitor name"
+                      value={competitorName}
+                      onChange={(e) => setCompetitorName(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Google Maps URL"
+                      value={competitorUrl}
+                      onChange={(e) => setCompetitorUrl(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Category (optional)"
+                      value={competitorCategory}
+                      onChange={(e) => setCompetitorCategory(e.target.value)}
+                    />
+                    <button type="submit" className="btn btn-primary">
+                      Add
+                    </button>
+                  </form>
 
-        {!selectedBusinessId ? (
-          <p style={{ fontSize: 13 }}>Select a business to see reports.</p>
-        ) : (
-          <>
-            {reportsError && (
-              <p style={{ color: "red", marginTop: 8 }}>{reportsError}</p>
-            )}
+                  {competitorError && (
+                    <p className="text-error">{competitorError}</p>
+                  )}
 
-            {reports.length === 0 ? (
-              <p style={{ fontSize: 13, marginTop: 8 }}>
-                No reports yet. Generate one from the competitors table above.
-              </p>
+                  {competitors.length === 0 ? (
+                    <p className="text-muted">
+                      No competitors yet. Add at least one using Google Maps URL.
+                    </p>
+                  ) : (
+                    <div className="table-wrapper">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Google Maps</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {competitors.map((c) => (
+                            <tr key={c.id} className="table-row-soft">
+                              <td>
+                                {c.name}
+                                {c.category && (
+                                  <div
+                                    style={{
+                                      fontSize: 11,
+                                      color: "var(--text-soft)",
+                                      marginTop: 2,
+                                    }}
+                                  >
+                                    {c.category}
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <a
+                                  href={c.google_maps_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-muted"
+                                >
+                                  Open in Maps
+                                </a>
+                              </td>
+                              <td>
+                                <div className="table-actions">
+                                  <button
+                                    className="btn"
+                                    disabled={loading}
+                                    onClick={() => handleScrape(c.id)}
+                                  >
+                                    <span className="btn-icon">🕸</span>
+                                    Scrape
+                                  </button>
+                                  <button
+                                    className="btn btn-primary"
+                                    disabled={loading}
+                                    onClick={() => handleGenerateReport(c.id)}
+                                  >
+                                    <span className="btn-icon">📄</span>
+                                    Report
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </section>
+        </div>
+
+        {/* Reports */}
+        <section className="card">
+          <div className="card-header">
+            <div>
+              <div className="card-title">Reports</div>
+              <div className="card-subtitle">
+                Download previously generated PDF reports per business.
+              </div>
+            </div>
+          </div>
+          <div className="card-body">
+            {!selectedBusinessId ? (
+              <p className="text-muted">Select a business to see reports.</p>
             ) : (
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: 13,
-                  marginTop: 8,
-                }}
-              >
-                <thead>
-                  <tr>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        borderBottom: "1px solid #e5e7eb",
-                        padding: 6,
-                      }}
-                    >
-                      Created at
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        borderBottom: "1px solid #e5e7eb",
-                        padding: 6,
-                      }}
-                    >
-                      PDF
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reports.map((r) => (
-                    <tr key={r.id}>
-                      <td
-                        style={{
-                          borderBottom: "1px solid #f3f4f6",
-                          padding: 6,
-                        }}
-                      >
-                        {new Date(r.created_at).toLocaleString()}
-                      </td>
-                      <td
-                        style={{
-                          borderBottom: "1px solid #f3f4f6",
-                          padding: 6,
-                        }}
-                      >
-                        {r.pdf_url ? (
-                          <button
-                            onClick={() => {
-                              const apiBase =
-                                (import.meta.env.VITE_API_BASE_URL as string) ||
-                                "http://localhost:4000";
-                              window.open(`${apiBase}${r.pdf_url}`, "_blank");
-                            }}
-                          >
-                            Open PDF
-                          </button>
-                        ) : (
-                          <span style={{ fontSize: 11, color: "#6b7280" }}>
-                            No file URL
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <>
+                {reportsError && (
+                  <p className="text-error">{reportsError}</p>
+                )}
+
+                {reports.length === 0 ? (
+                  <p className="text-muted">
+                    No reports yet. Generate your first report from the
+                    competitors table above.
+                  </p>
+                ) : (
+                  <div className="table-wrapper">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th>Created at</th>
+                          <th>PDF</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reports.map((r) => (
+                          <tr key={r.id} className="table-row-soft">
+                            <td>
+                              {new Date(r.created_at).toLocaleString()}
+                            </td>
+                            <td>
+                              {r.pdf_url ? (
+                                <button
+                                  className="btn btn-primary"
+                                  onClick={() => {
+                                    const apiBase =
+                                      (import.meta.env.VITE_API_BASE_URL as string) ||
+                                      "http://localhost:4000";
+                                    window.open(
+                                      `${apiBase}${r.pdf_url}`,
+                                      "_blank"
+                                    );
+                                  }}
+                                >
+                                  <span className="btn-icon">🔍</span>
+                                  Open PDF
+                                </button>
+                              ) : (
+                                <span className="text-muted">No file URL</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </section>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
