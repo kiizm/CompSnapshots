@@ -26,16 +26,18 @@ app.get("/health", (_req, res) => {
 
 app.get("/db-health", async (_req, res) => {
   try {
-    const result = await pool.query("SELECT NOW()");
-    res.json({
-      status: "ok",
-      time: result.rows[0].now,
+    await pool.query("SELECT 1");
+    res.json({ status: "ok", db: "connected" });
+  } catch (error: any) {
+    console.error("DB health check error:", error);
+    res.status(500).json({
+      status: "error",
+      error: error.message,
+      code: error.code,
     });
-  } catch (error) {
-    console.error("DB health check failed:", error);
-    res.status(500).json({ status: "error", error: "DB connection failed" });
   }
 });
+
 
 /**
  * TEMP: Test endpoint to create a business
