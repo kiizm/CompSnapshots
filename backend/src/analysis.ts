@@ -108,6 +108,8 @@ export async function analyzeCompetitor(
     FROM public.reviews
     WHERE competitor_id = $1
       AND review_text IS NOT NULL
+    ORDER BY created_at DESC
+    LIMIT 5
     `,
     [competitorId]
   );

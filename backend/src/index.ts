@@ -5,16 +5,25 @@ import { scrapeGoogleMapsReviews } from "./scrapers/googleMaps";
 import { analyzeCompetitor } from "./analysis";
 import path from "path";
 import { generateCompetitorReport } from "./reports";
+import dotenv from "dotenv";
+dotenv.config();
 
 
-
-
+const CORS_ALLOWED_ORIGINS = ["http://localhost:5173", "https://YOUR_PROD_DOMAIN"];
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || CORS_ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+      return cb(new Error("CORS not allowed"));
+    },
+  })
+);
+
+app.use(express.json({ limit: "1mb" }));
 
 const reportsDir = path.join(__dirname, "..", "reports");
 app.use("/reports", express.static(reportsDir));
@@ -163,7 +172,7 @@ app.post("/scrape-competitor/:id", async (req, res) => {
       const insertedCount = await scrapeGoogleMapsReviews(
         competitor.id,
         competitor.google_maps_url,
-        20
+        5 // <-- always only 5 reviews in MVP
       );
   
       res.json({
@@ -254,32 +263,21 @@ app.get("/reviews", async (_req, res) => {
  * Get analysis for a competitor
  */
 app.get("/competitors/:id/analysis", async (req, res) => {
-    const { id } = req.params;
-  
-    try {
-      // Optionally verify the competitor exists
-      const existing = await pool.query(
-        `SELECT id FROM public.competitors WHERE id = $1`,
-        [id]
-      );
-  
-      if (existing.rowCount === 0) {
-        return res.status(404).json({ error: "Competitor not found" });
-      }
-  
-      const analysis = await analyzeCompetitor(id);
-  
-      res.json({
-        status: "ok",
-        analysis,
-      });
-    } catch (error) {
-      console.error("Error in /competitors/:id/analysis:", error);
-      res
-        .status(500)
-        .json({ status: "error", error: "Failed to analyze competitor" });
+  const { id } = req.params;
+  try {
+    const existing = await pool.query(
+      `SELECT id FROM public.competitors WHERE id = $1`,
+      [id]
+    );
+    if (existing.rowCount === 0) {
+      return res.status(404).json({ error: "Competitor not found" });
     }
-  });
+    const analysis = await analyzeCompetitor(id); // Only pass id, the function will fetch latest 5
+    res.json({ status: "ok", analysis });
+  } catch (error) {
+    res.status(500).json({ status: "error", error: "Failed to analyze competitor" });
+  }
+});
   
   /**
  * Generate a report for a business + competitor

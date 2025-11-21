@@ -11,7 +11,7 @@ type ScrapedReview = {
 export async function scrapeGoogleMapsReviews(
   competitorId: string,
   googleMapsUrl: string,
-  maxReviews = 20
+  maxReviews = 5 // <-- limit to 5 by default
 ) {
   // Run in non-headless mode for debugging
   // Run in headless mode for production
